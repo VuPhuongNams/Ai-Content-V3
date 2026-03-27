@@ -12,9 +12,9 @@ if 'history' not in st.session_state:
     st.session_state['history'] = []
 
 # ===== CONFIG GIAO DIỆN =====
-st.set_page_config(page_title="AI Content Lab Pro V4", page_icon="🎬", layout="centered")
+st.set_page_config(page_title="AI Content V3", page_icon="🎬", layout="centered")
 
-st.title("🎬 AI Content Lab Pro V4")
+st.title("🎬 AI Content V3")
 st.write("Dự án của Nam - Up file, chọn chế độ và để AI lo phần 'cháy' nhất!")
 
 # ===== LẤY API KEY TỪ SECRETS CỦA STREAMLIT =====
@@ -28,7 +28,7 @@ except Exception as e:
     st.stop()
 
 # ==========================================
-# SIDEBAR: CHỈ GIỮ LẠI LỊCH SỬ (TỐI ƯU TỐC ĐỘ)
+# SIDEBAR: QUÉT MODEL & LỊCH SỬ
 # ==========================================
 with st.sidebar:
     st.header("📚 Lịch sử sáng tạo")
@@ -88,7 +88,7 @@ st.write("---")
 media_type = st.radio("⚡ Bạn muốn làm gì?", ["Video", "Hình Ảnh", "🎙️ Tạo File Lồng Tiếng"], horizontal=True)
 
 # ==========================================
-# 1. GIAO DIỆN XỬ LÝ VIDEO 
+# 1. GIAO DIỆN XỬ LÝ VIDEO
 # ==========================================
 if media_type == "Video":
     st.subheader("🎥 Phòng Lab Video")
@@ -100,8 +100,8 @@ if media_type == "Video":
         caption_style_vid = st.selectbox("✍️ Phong cách Caption:", danh_sach_phong_cach)
 
     user_video_context = st.text_area(
-        "📝 Mô tả thêm video (Tuỳ chọn):",
-        placeholder="Giúp AI bắt trend hoặc viết Kịch bản lồng tiếng chuẩn hơn...",
+        "📝 Mô tả thêm video (VD: đi du lịch Mũi Né, review son...):",
+        placeholder="Giúp AI lồng tiếng chuẩn hơn...",
         height=70
     )
     
@@ -144,14 +144,10 @@ if media_type == "Video":
                         vai_dien = prompt_dictionary.get(caption_style_vid, "Viết caption bình thường.")
                         prompt = f"""
                         Nhiệm vụ: Phân tích video này và viết 3 mẫu caption khác nhau để đăng lên {platform}.
-                        
                         THÔNG TIN BỔ SUNG: Ngữ cảnh: "{user_video_context}"
-                        
                         CHỈ THỊ NHẬP VAI BẮT BUỘC: {vai_dien}
-
                         QUY TẮC ĐẦU RA (NGHIÊM CẤM LÀM SAI):
-                        1. Không dông dài giải thích.
-                        2. Ngôn ngữ phải tự nhiên 100% như người thật.
+                        1. Không dông dài giải thích. 2. Ngôn ngữ phải tự nhiên 100% như người thật.
                         3. In ra trực tiếp 3 kết quả đánh số 1️⃣ 2️⃣ 3️⃣. Cuối cùng kèm 1 dòng Hashtag.
                         """
                     elif viral_btn:
@@ -175,13 +171,15 @@ if media_type == "Video":
                     st.divider()
                     st.subheader(f"💡 Kết quả: {analysis_type}")
                     st.markdown(response.text)
-                    st.balloons() # Thả bóng bay chúc mừng
+                    st.balloons()
 
+                    # LƯU LỊCH SỬ & LÀM MỚI TRANG
                     st.session_state['history'].insert(0, {
                         "time": time.strftime("%H:%M"), "type": f"Video: {analysis_type}", "platform": platform, "result": response.text
                     })
-
+                    
                     client.files.delete(name=video_file.name)
+                    st.rerun() # <-- Đã fix lỗi thiếu làm mới trang
 
                 except Exception as e:
                     if "429" in str(e) or "503" in str(e):
@@ -193,7 +191,7 @@ if media_type == "Video":
                         os.remove(video_path)
 
 # ==========================================
-# 2. GIAO DIỆN XỬ LÝ HÌNH ẢNH 
+# 2. GIAO DIỆN XỬ LÝ HÌNH ẢNH
 # ==========================================
 elif media_type == "Hình Ảnh":
     st.subheader("🖼️ Phòng Lab Hình Ảnh")
@@ -250,11 +248,13 @@ elif media_type == "Hình Ảnh":
                     st.divider()
                     st.subheader(f"💡 Kết quả: {analysis_img_type}")
                     st.markdown(response_img.text)
-                    st.balloons() # Thả bóng bay
+                    st.balloons()
 
+                    # LƯU LỊCH SỬ & LÀM MỚI TRANG
                     st.session_state['history'].insert(0, {
                         "time": time.strftime("%H:%M"), "type": f"Ảnh: {analysis_img_type}", "platform": platform_img, "result": response_img.text
                     })
+                    st.rerun() # <-- Đã fix lỗi thiếu làm mới trang
 
                 except Exception as e:
                     if "429" in str(e) or "503" in str(e):
